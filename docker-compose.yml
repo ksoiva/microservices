@@ -1,0 +1,89 @@
+version: '3'
+
+services:
+  postgres:
+    image: "postgres:latest"
+    ports:
+      - "5432:5432"
+    restart: always
+    container_name: database
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=tickets
+    networks:
+      - internal
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U postgres -d tickets'" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+    restart: always
+    container_name: redis-cache
+    networks:
+      - internal
+  user:
+    container_name: user-service
+    build:
+      context: ./user
+    ports:
+      - "8083:8083"
+    environment:
+      spring.datasource.url: jdbc:postgresql://postgres:5432/tickets
+      spring.datasource.username: postgres
+      spring.datasource.password: postgres
+      spring.redis.host: redis
+      spring.redis.port: 6379
+    networks:
+      - internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+  flight:
+    container_name: flight-service
+    build:
+      context: ./flight
+    ports:
+      - "8081:8081"
+    environment:
+      spring.datasource.url: jdbc:postgresql://postgres:5432/tickets
+      spring.datasource.username: postgres
+      spring.datasource.password: postgres
+      spring.redis.host: redis
+      spring.redis.port: 6379
+    networks:
+      - internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+  ticket:
+    container_name: ticket-service
+    build:
+      context: ./ticket
+    ports:
+      - "8082:8082"
+    environment:
+      spring.datasource.url: jdbc:postgresql://postgres:5432/tickets
+      spring.datasource.username: postgres
+      spring.datasource.password: postgres
+      spring.redis.host: redis
+      spring.redis.port: 6379
+    networks:
+      - internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      flight:
+        condition: service_started
+      user:
+        condition: service_started
+
+networks:
+  internal:
+    driver: bridge
+    external: false
+
