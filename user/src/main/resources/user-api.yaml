@@ -1,0 +1,125 @@
+openapi: 3.0.3
+info:
+  title: User API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8083
+tags:
+  - name: user
+    description: Operations about user
+paths:
+  /users:
+    post:
+      tags:
+        - user
+      description: Add new user
+      operationId: addUser
+      requestBody:
+        description: New user information
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: New user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/{userId}:
+    get:
+      tags:
+        - user
+      operationId: getUserById
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Get user by ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User with the specified ID was not found.
+    put:
+      tags:
+        - user
+      operationId: updateUserById
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User was updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User with the specified ID was not found.
+    delete:
+      tags:
+        - user
+      operationId: deleteUserById
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: User was deleted.
+        '404':
+          description: User not found.
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - phone
+        - email
+        - dateOfBirth
+        - nationality
+        - documentNo
+        - docExpireDate
+      properties:
+        id:
+          type: number
+          readOnly: true
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        nationality:
+          type: string
+        documentNo:
+          type: string
+        docExpireDate:
+          type: string
+          format: date
