@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flight-service
+  labels:
+    app: flight-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: flight-service
+  template:
+    metadata:
+      labels:
+        app: flight-service
+    spec:
+      containers:
+        - name: flight-service
+          image: microservices-flight:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: spring.datasource.url
+              value: "jdbc:postgresql://postgres:5432/tickets"
+            - name: spring.datasource.username
+              value: postgres
+            - name: spring.datasource.password
+              value: postgres
+            - name: spring.redis.host
+              value: redis
+            - name: spring.redis.port
+              value: "6379"
+          imagePullPolicy: Never
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flight-service
+spec:
+  type: LoadBalancer   # Specify the service type as LoadBalancer
+  selector:
+    app: flight-service
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
