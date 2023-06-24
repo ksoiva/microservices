@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ticket-service
+  labels:
+    app: ticket-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ticket-service
+  template:
+    metadata:
+      labels:
+        app: ticket-service
+    spec:
+      containers:
+        - name: ticket-service
+          image: microservices-ticket:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: spring.datasource.url
+              value: "jdbc:postgresql://postgres:5432/tickets"
+            - name: spring.datasource.username
+              value: postgres
+            - name: spring.datasource.password
+              value: postgres
+            - name: spring.redis.host
+              value: redis
+            - name: spring.redis.port
+              value: "6379"
+          imagePullPolicy: Never
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ticket-service
+spec:
+  type: LoadBalancer   # Specify the service type as LoadBalancer
+  selector:
+    app: ticket-service
+  ports:
+    - protocol: TCP
+      port: 8082
+      targetPort: 8082
